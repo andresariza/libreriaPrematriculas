@@ -26,7 +26,7 @@ class DAOBridgeImpl extends DAOBridge {
     }
 
     public function consultarCarrera() {
-        $carreraEstudiante = unserialize(Factory::getSessionVar("carreraEstudiante"));
+        $carreraEstudiante = Factory::getCarreraEstudiante(); 
         return $this->getCarreraDAO()->consultarCarrera($carreraEstudiante->getCodigocarrera());
     }
 
