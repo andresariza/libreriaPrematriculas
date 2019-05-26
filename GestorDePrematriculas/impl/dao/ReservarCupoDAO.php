@@ -42,18 +42,14 @@ class ReservarCupoDAO implements IReservarCupoDAO{
 
     public function consultarReservasEstudiante(EstudianteDTO $estudianteDTO) {
         $db = Factory::createDbo();
-        $return = array();
         $where = " idEstudiante = ".$db->qstr($estudianteDTO->getCodigo());
-        $return = $this->validarVidaReserva($where, $return, $estudianteDTO);
-        return $return;
+        return $this->validarVidaReserva($where, $estudianteDTO);
     }
 
     public function consultarReservasGrupo($idGrupo) {
         $db = Factory::createDbo();
-        $return = array();
         $where = " idGrupo = ".$db->qstr($idGrupo);
-        $return = $this->validarVidaReserva($where, $return);
-        return $return;
+        return $this->validarVidaReserva($where);
     }
 
     public function reservarCupo(EstudianteDTO $estudianteDTO, $grupoid) {
@@ -71,7 +67,8 @@ class ReservarCupoDAO implements IReservarCupoDAO{
         return $result;
     }
     
-    private function validarVidaReserva($where, $return, $estudianteDTO = null ){
+    private function validarVidaReserva($where, $estudianteDTO = null ){
+        $return = array();
         $reserva = ReservaCupo::getList($where);
         if(!empty($reserva)){
             foreach($reserva as $r){
