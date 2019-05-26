@@ -44,35 +44,7 @@ class ReservarCupoDAO implements IReservarCupoDAO{
         $db = Factory::createDbo();
         $return = array();
         $where = " idEstudiante = ".$db->qstr($estudianteDTO->getCodigo());
-        
-        $reserva = ReservaCupo::getList($where);
-        
-        if(!empty($reserva)){
-            foreach($reserva as $r){
-                //7200 -> 2 horas
-                $curTime = mktime();
-                $reservaTime = strtotime($r->getFechaReserva());  
-                $diferencia = $curTime - $reservaTime;
-                
-                if($diferencia<=7200){
-                    $entGrupo = new Grupo();
-                    $entGrupo->setIdgrupo($r->getIdGrupo());
-                    $entGrupo->getById();
-
-                    $GrupoDTO = new GrupoDTO();
-                    $GrupoDTO->setId($entGrupo->getIdgrupo());
-                    $GrupoDTO->setDocente($entGrupo->getNumerodocumento());
-                    $GrupoDTO->setEstado($entGrupo->getCodigoestadogrupo());
-                    $GrupoDTO->setNombre($entGrupo->getNombregrupo());
-                    $GrupoDTO->setCodigoGrupo($entGrupo->getCodigogrupo());
-                    $GrupoDTO->setCupoMaximo($entGrupo->getMaximogrupo());
-                    $GrupoDTO->setCupoOcupado($entGrupo->getMatriculadosgrupo());
-                    $return[] = $GrupoDTO;
-                }else{
-                    $this->borrarReservaBajoNivel($estudianteDTO, $r->getIdGrupo());
-                }
-            }
-        }
+        $return = $this->validarVidaReserva($where, $return, $estudianteDTO);
         return $return;
     }
 
@@ -80,34 +52,7 @@ class ReservarCupoDAO implements IReservarCupoDAO{
         $db = Factory::createDbo();
         $return = array();
         $where = " idGrupo = ".$db->qstr($idGrupo);
-        $reserva = ReservaCupo::getList($where);
-         
-        if(!empty($reserva)){
-            foreach($reserva as $r){
-                //7200 -> 2 horas
-                $curTime = mktime();
-                $reservaTime = strtotime($r->getFechaReserva());  
-                $diferencia = $curTime - $reservaTime; 
-                if($diferencia<=7200){
-                    $entGrupo = new Grupo();
-                    $entGrupo->setIdgrupo($r->getIdGrupo());
-                    $entGrupo->getById();
-
-                    $GrupoDTO = new GrupoDTO();
-                    $GrupoDTO->setId($entGrupo->getIdgrupo());
-                    $GrupoDTO->setDocente($entGrupo->getNumerodocumento());
-                    $GrupoDTO->setEstado($entGrupo->getCodigoestadogrupo());
-                    $GrupoDTO->setNombre($entGrupo->getNombregrupo());
-                    $GrupoDTO->setCodigoGrupo($entGrupo->getCodigogrupo());
-                    $GrupoDTO->setCupoMaximo($entGrupo->getMaximogrupo());
-                    $GrupoDTO->setCupoOcupado($entGrupo->getMatriculadosgrupo());
-                    $return[] = $GrupoDTO;
-                }else{
-                    $estudianteDTO = new EstudianteDTO($r->getIdEstudiante(), $r->getIdEstudiante(), null, null, null, null);
-                    $this->borrarReservaBajoNivel($estudianteDTO, $r->getIdGrupo());
-                }
-            }
-        }
+        $return = $this->validarVidaReserva($where, $return);
         return $return;
     }
 
@@ -124,6 +69,35 @@ class ReservarCupoDAO implements IReservarCupoDAO{
             $result = $reservaCupoDAO->save();
         }
         return $result;
+    }
+    
+    private function validarVidaReserva($where, $return, $estudianteDTO = null ){
+        $reserva = ReservaCupo::getList($where);
+        if(!empty($reserva)){
+            foreach($reserva as $r){
+                if(empty($estudianteDTO)){
+                    $estudianteDTO = new EstudianteDTO($r->getIdEstudiante(), $r->getIdEstudiante(), null, null, null, null);
+                }
+                
+                //7200 -> 2 horas
+                $curTime = mktime(); $reservaTime = strtotime($r->getFechaReserva());  $diferencia = $curTime - $reservaTime;
+                
+                if($diferencia<=7200){
+                    $entGrupo = new Grupo();
+                    $entGrupo->setIdgrupo($r->getIdGrupo());
+                    $entGrupo->getById();
+
+                    $GrupoDTO = new GrupoDTO();
+                    $GrupoDTO->setId($entGrupo->getIdgrupo()); $GrupoDTO->setDocente($entGrupo->getNumerodocumento());
+                    $GrupoDTO->setEstado($entGrupo->getCodigoestadogrupo()); $GrupoDTO->setNombre($entGrupo->getNombregrupo());
+                    $GrupoDTO->setCodigoGrupo($entGrupo->getCodigogrupo()); $GrupoDTO->setCupoMaximo($entGrupo->getMaximogrupo()); $GrupoDTO->setCupoOcupado($entGrupo->getMatriculadosgrupo());
+                    $return[] = $GrupoDTO;
+                }else{
+                    $this->borrarReservaBajoNivel($estudianteDTO, $r->getIdGrupo());
+                }
+            }
+        }
+        return $return;
     }
     
     private function validarExisteReserva(EstudianteDTO $estudianteDTO, $grupoid){
