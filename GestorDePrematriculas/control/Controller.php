@@ -19,7 +19,7 @@ use \Sala\lib\GestorDePrematriculas\dto\PeriodoDTO;
 use \Sala\lib\GestorDePrematriculas\dto\CarreraDTO;
 use \Sala\lib\GestorDePrematriculas\dto\EstudianteDTO;
 use \Sala\lib\GestorDePrematriculas\dto\PlanEstudioDTO;
-use \Sala\lib\GestorDePrematriculas\interfaces\estudiante\IEstudiante;
+use \Sala\lib\GestorDePrematriculas\impl\estudiante\EstudianteImpl;
 use \Sala\lib\GestorDePrematriculas\impl\daoBridge\DAOBridgeImpl;
 use \Sala\lib\GestorDePrematriculas\impl\validaAcceso\FechaAcademicaImpl;
 use \Sala\lib\GestorDePrematriculas\impl\validaAcceso\PazYSalvoImpl;
@@ -52,11 +52,16 @@ class Controller {
             $permiso = false;
             $this->mensajeError[] = "No se encuentra dentro de las fechas permitidas para prematricula";
         }
-        if($this->Estudiante->validarEstado()===false){
+        $estudiante = new EstudianteImpl($this->Estudiante);
+        if($estudiante->validarEstado()===false){
             $permiso = false;
             $this->mensajeError[] = "No se encuentra como estudiante activo";
         }
-        if($this->pazYSalvo->validarPazYSalvoEstudiante()===false){
+        if($this->Estudiante->getEstadoPrematricula()===true){
+            $permiso = false;
+            $this->mensajeError[] = "El estudiante ya realizo la prematricula";
+        }
+        if($this->pazYSalvo->validarPazYSalvoEstudiante($this->Estudiante, $this->periodoDTO)===false){
             $permiso = false;
             $this->mensajeError[] = "No se encuentra a paz y salvo";
         }
@@ -82,7 +87,7 @@ class Controller {
         $this->carreraDTO = $CarreraDTO;
     }
     
-    public function setEstudiante(IEstudiante $Estudiante){
+    public function setEstudiante($Estudiante){
         $this->Estudiante = $Estudiante;
     }
     
@@ -91,7 +96,7 @@ class Controller {
     }
     
     private function setPazYSalvo(){
-        $this->pazYSalvo = new PazYSalvoImpl($this->Estudiante->getEstudianteDTO());
+        $this->pazYSalvo = new PazYSalvoImpl($this->Estudiante);
     }
     public function getCarreraDTO() {
         return $this->carreraDTO;
