@@ -29,7 +29,7 @@ class ReservarCupoDAO implements IReservarCupoDAO{
         echo json_encode(array("s"=>$this->borrarReservaBajoNivel($estudianteDTO, $grupoid)));
     }
     
-    public function borrarReservaBajoNivel(EstudianteDTO $estudianteDTO, $grupoid) {
+    private function borrarReservaBajoNivel(EstudianteDTO $estudianteDTO, $grupoid) {
         $result = false;
         
         $reservaCupoEnt = $this->validarExisteReserva($estudianteDTO, $grupoid);
